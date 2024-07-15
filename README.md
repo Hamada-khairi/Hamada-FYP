@@ -60,7 +60,7 @@ Before you begin, ensure you have the following installed on your system:
         -addext "subjectAltName=DNS:*.hamada.local,DNS:hamada.local" 
    ```
 
-5. Verifying the Certs
+6. Verifying the Certs:
    ```
     openssl x509 -outform der -in ./traefik/config/certs/cert.pem -out ./traefik/config/certs/cert.der
    
@@ -71,12 +71,12 @@ Before you begin, ensure you have the following installed on your system:
     openssl x509 -noout -modulus -in ./traefik/config/certs/cert.pem | openssl md5 
    ```
 
-6. Start the services:
+7. Start the services:
    ```
    docker-compose up -d
    ```
 
-6. Access the services through their respective URLs (as defined in your Traefik configuration).
+8. Access the services through their respective URLs (as defined in your Traefik configuration).
 
 ---
 
