@@ -1,6 +1,9 @@
 # Hamada-FYP
 ## Full SIEM in one Docker Compose File 
 
+![image](https://github.com/user-attachments/assets/049ec463-3dfa-4bdf-b8ae-7ec77e7fb467)
+
+
 This project is a comprehensive Docker-based setup for a variety of services including Wazuh (a security information and event management system), Traefik (a modern HTTP reverse proxy and load balancer), Grafana, InfluxDB, Telegraf, and more.
 
 ## Table of Contents
