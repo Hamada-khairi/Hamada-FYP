@@ -1,0 +1,607 @@
+---
+
+# networks
+#==============================================================================================================================
+
+networks:
+  hamada-network:
+    ipam:
+      config:
+        - subnet: 10.10.20.0/24
+
+
+
+# services
+#==============================================================================================================================
+
+services:
+
+
+
+
+
+# traefik
+#==============================================================================================================================
+# sudo timedatectl set-timezone Asia/Kuala_Lumpur
+
+  traefik:
+    image: docker.io/library/traefik:${TRAEFIK_VERSION}
+    container_name: hamada-traefik
+    ports:
+      - 80:80
+      - 443:443
+      # -- (Optional) Enable Dashboard, don't do in production
+      # - 8080:8080
+    command: --api.insecure=true --providers.docker 
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik/config/traefik.yaml:/etc/traefik/traefik.yaml:ro
+      - ./traefik/config/conf/:/etc/traefik/conf/
+      - ./traefik/config/certs/:/etc/traefik/certs/:ro
+
+    # -- (Optional) When using Cloudflare as Cert Resolver
+    # For lets encrypt
+    # environment:
+    #   - CF_DNS_API_TOKEN=your-cloudflare-api-token
+    # -- (Optional) When using a custom network
+
+    networks:
+      - hamada-network
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.traefik-dashboard.loadbalancer.server.port=8080"
+      - "traefik.http.services.traefik-dashboard.loadbalancer.server.scheme=http"
+      - "traefik.http.routers.traefik-dashboard-http.entrypoints=web"
+      - "traefik.http.routers.traefik-dashboard-http.rule=Host(`traefik-dashboard.${DOMAIN_NAME}`) || HostRegexp(`{subhost:[a-z]+}.traefik-dashboard.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.traefik-dashboard-https.entrypoints=websecure"
+      - "traefik.http.routers.traefik-dashboard-https.rule=Host(`traefik-dashboard.${DOMAIN_NAME}`) || HostRegexp(`{subhost:[a-z]+}.traefik-dashboard.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.traefik-dashboard-https.tls=true"
+
+
+
+# for gen self signed cert
+
+# openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+#     -keyout ./config/certs/cert-key.pem \
+#     -out ./config/certs/cert.pem \
+#     -subj "/CN=*.hamada.local" \
+#     -addext "subjectAltName=DNS:*.hamada.local,DNS:hamada.local" 
+
+# openssl x509 -outform der -in ./config/certs/cert.pem -out ./config/certs/cert.der
+# openssl x509 -in ./config/certs/cert.pem -text -noout
+# openssl rsa -noout -modulus -in cert-key.pem | openssl md5
+# openssl x509 -noout -modulus -in cert.pem | openssl md5 
+
+
+
+
+# Bind9 
+#==============================================================================================================================
+
+
+  bind9:
+    container_name: hamada-bind-dns
+    image: ubuntu/bind9:${BIND_VERSION}
+    environment:
+      - BIND9_USER=root
+      - TZ=Asia/Kuala_Lumpur
+    ports:
+      - "53:53/tcp"
+      - "53:53/udp"
+    volumes:
+      - ./bind9/config:/etc/bind
+      - ./bind9/cache:/var/cache/bind
+      - ./bind9/records:/var/lib/bind
+    restart: unless-stopped
+    networks:
+      hamada-network:
+        ipv4_address: 10.10.20.53  # Assign a static IP to your Bind9 container
+
+
+# wazuh manager
+#==============================================================================================================================
+
+# Before we need to put this commands 
+
+# 1) Increase max_map_count on your host (Linux). This command must be run with root permissions:
+# ```
+# $ sysctl -w vm.max_map_count=262144
+# ```
+# 2) Run the certificate creation script:
+# ```
+# $ docker-compose -f generate-indexer-certs.yml run --rm generator
+# ```
+# 3) Start the environment with docker-compose:
+
+
+# ```
+# - In the background:
+# ```
+# $ docker-compose up -d
+# ```
+
+
+
+  wazuh.manager:
+    image: wazuh/wazuh-manager:${WAZUH_STACK_VERSION}
+    hostname: wazuh.manager
+    container_name: hamada-wazuh-manager
+    restart: always
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 655360
+        hard: 655360
+    ports:
+      - "1514:1514"
+      - "1515:1515"
+      - "514:514/udp"
+      - "55000:55000"
+    environment:
+      - INDEXER_URL=https://wazuh.indexer:9200
+      - INDEXER_USERNAME=${INDEXER_USERNAME}
+      - INDEXER_PASSWORD=${INDEXER_PASSWORD}
+      - FILEBEAT_SSL_VERIFICATION_MODE=full
+      - SSL_CERTIFICATE_AUTHORITIES=/etc/ssl/root-ca.pem
+      - SSL_CERTIFICATE=/etc/ssl/filebeat.pem
+      - SSL_KEY=/etc/ssl/filebeat.key
+      - API_USERNAME=${API_USERNAME}
+      - API_PASSWORD=${API_PASSWORD}
+    volumes:
+      - wazuh_api_configuration:/var/ossec/api/configuration
+      - wazuh_etc:/var/ossec/etc
+      - wazuh_logs:/var/ossec/logs
+      - wazuh_queue:/var/ossec/queue
+      - wazuh_var_multigroups:/var/ossec/var/multigroups
+      - wazuh_integrations:/var/ossec/integrations
+      - wazuh_active_response:/var/ossec/active-response/bin
+      - wazuh_agentless:/var/ossec/agentless
+      - wazuh_wodles:/var/ossec/wodles
+      - filebeat_etc:/etc/filebeat
+      - filebeat_var:/var/lib/filebeat
+      - ./wazuh/config/wazuh_indexer_ssl_certs/root-ca-manager.pem:/etc/ssl/root-ca.pem
+      - ./wazuh/config/wazuh_indexer_ssl_certs/wazuh.manager.pem:/etc/ssl/filebeat.pem
+      - ./wazuh/config/wazuh_indexer_ssl_certs/wazuh.manager-key.pem:/etc/ssl/filebeat.key
+      - ./wazuh/config/wazuh_cluster/wazuh_manager.conf:/wazuh-config-mount/etc/ossec.conf
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.wazuh-manager.loadbalancer.server.port=55000"
+      - "traefik.http.services.wazuh-manager.loadbalancer.server.scheme=https"
+      - "traefik.http.routers.wazuh-manager-http.entrypoints=web"
+      - "traefik.http.routers.wazuh-manager-http.rule=Host(`wazuh-manager.${DOMAIN_NAME}`) || HostRegexp(`{subhost:[a-z]+}.wazuh-manager.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.wazuh-manager-https.entrypoints=websecure"
+      - "traefik.http.routers.wazuh-manager-https.rule=Host(`wazuh-manager.${DOMAIN_NAME}`) || HostRegexp(`{subhost:[a-z]+}.wazuh-manager.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.wazuh-manager-https.tls=true"
+    networks:
+      - hamada-network
+
+    dns:
+      - 10.10.20.53  # Use Bind9 for DNS resolution
+
+
+# wazuh indexer
+#==============================================================================================================================
+
+
+
+  wazuh.indexer:
+    image: wazuh/wazuh-indexer:${WAZUH_STACK_VERSION}
+    hostname: wazuh.indexer
+    container_name: hamada-wazuh-indexer
+    restart: always
+    ports:
+      - "9200:9200"
+    environment:
+      - "OPENSEARCH_JAVA_OPTS=-Xms1g -Xmx1g"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    volumes:
+      - wazuh-indexer-data:/var/lib/wazuh-indexer
+      - ./wazuh/config/wazuh_indexer_ssl_certs/root-ca.pem:/usr/share/wazuh-indexer/certs/root-ca.pem
+      - ./wazuh/config/wazuh_indexer_ssl_certs/wazuh.indexer-key.pem:/usr/share/wazuh-indexer/certs/wazuh.indexer.key
+      - ./wazuh/config/wazuh_indexer_ssl_certs/wazuh.indexer.pem:/usr/share/wazuh-indexer/certs/wazuh.indexer.pem
+      - ./wazuh/config/wazuh_indexer_ssl_certs/admin.pem:/usr/share/wazuh-indexer/certs/admin.pem
+      - ./wazuh/config/wazuh_indexer_ssl_certs/admin-key.pem:/usr/share/wazuh-indexer/certs/admin-key.pem
+      - ./wazuh/config/wazuh_indexer/wazuh.indexer.yml:/usr/share/wazuh-indexer/opensearch.yml
+      - ./wazuh/config/wazuh_indexer/internal_users.yml:/usr/share/wazuh-indexer/opensearch-security/internal_users.yml
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.wazuh-indexer.loadbalancer.server.port=9200"
+      - "traefik.http.services.wazuh-indexer.loadbalancer.server.scheme=https"
+      - "traefik.http.routers.wazuh-indexer-http.entrypoints=web"
+      - "traefik.http.routers.wazuh-indexer-http.rule=Host(`wazuh-indexer.${DOMAIN_NAME}`) || HostRegexp(`{subhost:[a-z]+}.wazuh-indexer.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.wazuh-indexer-https.entrypoints=websecure"
+      - "traefik.http.routers.wazuh-indexer-https.rule=Host(`wazuh-indexer.${DOMAIN_NAME}`) || HostRegexp(`{subhost:[a-z]+}.wazuh-indexer.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.wazuh-indexer-https.tls=true"
+    networks:
+      - hamada-network
+
+    dns:
+      - 10.10.20.53  # Use Bind9 for DNS resolution
+
+# wazuh dashboard
+#==============================================================================================================================
+
+
+  wazuh.dashboard:
+    image: wazuh/wazuh-dashboard:${WAZUH_STACK_VERSION}
+    hostname: wazuh.dashboard
+    restart: always
+    container_name: hamada-wazuh-dashboard
+    environment:
+      - INDEXER_USERNAME=${INDEXER_USERNAME}
+      - INDEXER_PASSWORD=${INDEXER_PASSWORD}
+      - WAZUH_API_URL=https://wazuh.manager
+      - DASHBOARD_USERNAME=${DASHBOARD_USERNAME}
+      - DASHBOARD_PASSWORD=${DASHBOARD_PASSWORD}
+      - API_USERNAME=${API_USERNAME}
+      - API_PASSWORD=${API_PASSWORD}
+    volumes:
+      - ./wazuh/config/wazuh_indexer_ssl_certs/wazuh.dashboard.pem:/usr/share/wazuh-dashboard/certs/wazuh-dashboard.pem
+      - ./wazuh/config/wazuh_indexer_ssl_certs/wazuh.dashboard-key.pem:/usr/share/wazuh-dashboard/certs/wazuh-dashboard-key.pem
+      - ./wazuh/config/wazuh_indexer_ssl_certs/root-ca.pem:/usr/share/wazuh-dashboard/certs/root-ca.pem
+      - ./wazuh/config/wazuh_dashboard/opensearch_dashboards.yml:/usr/share/wazuh-dashboard/config/opensearch_dashboards.yml
+      - ./wazuh/config/wazuh_dashboard/wazuh.yml:/usr/share/wazuh-dashboard/data/wazuh/config/wazuh.yml
+      - ./wazuh/logo/hamada-avatar-big.svg:/usr/share/wazuh-dashboard/data/wazuh/config/hamada-avatar-big.svg
+      - ./wazuh/logo/hamada-avatar-small.svg:/usr/share/wazuh-dashboard/data/wazuh/config/hamada-avatar-small.svg
+      - wazuh-dashboard-config:/usr/share/wazuh-dashboard/data/wazuh/config
+      - wazuh-dashboard-custom:/usr/share/wazuh-dashboard/plugins/wazuh/public/assets/custom
+    depends_on:
+      - wazuh.indexer
+    links:
+      - wazuh.indexer:wazuh.indexer
+      - wazuh.manager:wazuh.manager
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.wazuh-dashboard.loadbalancer.server.port=5601"
+      - "traefik.http.services.wazuh-dashboard.loadbalancer.server.scheme=https"
+      - "traefik.http.routers.wazuh-dashboard-http.entrypoints=web"
+      - "traefik.http.routers.wazuh-dashboard-http.rule=Host(`wazuh-dashboard.${DOMAIN_NAME}`) || HostRegexp(`{subhost:[a-z]+}.wazuh-dashboard.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.wazuh-dashboard-https.entrypoints=websecure"
+      - "traefik.http.routers.wazuh-dashboard-https.rule=Host(`wazuh-dashboard.${DOMAIN_NAME}`) || HostRegexp(`{subhost:[a-z]+}.wazuh-dashboard.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.wazuh-dashboard-https.tls=true"
+    networks:
+      - hamada-network
+
+
+    dns:
+      - 10.10.20.53  # Use Bind9 for DNS resolution
+
+
+# telegraf
+#==============================================================================================================================
+
+  # telegraf service
+  telegraf:
+    image: telegraf:1.31.1-alpine
+    container_name: hamada-telegraf
+    restart: always
+    volumes:
+    - ./telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+    - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - influxdb
+    links:
+      - influxdb
+    ports:
+    - '127.0.0.1:8125:8125/udp'
+    networks:
+      - hamada-network
+    dns:
+      - 10.10.20.53  # Use Bind9 for DNS resolution
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.telegraf.loadbalancer.server.port=8125"
+      - "traefik.http.services.telegraf.loadbalancer.server.scheme=http"
+      - "traefik.http.routers.telegraf-http.entrypoints=web"
+      - "traefik.http.routers.telegraf-http.rule=Host(`telegraf.${DOMAIN_NAME}`) || HostRegexp(`{subhost:[a-z]+}.telegraf.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.telegraf-https.entrypoints=websecure"
+      - "traefik.http.routers.telegraf-https.rule=Host(`telegraf.${DOMAIN_NAME}`) || HostRegexp(`{subhost:[a-z]+}.telegraf.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.telegraf-https.tls=true"
+
+
+
+# telegraf
+#==============================================================================================================================
+
+
+  influxdb:
+    image: influxdb:2.7-alpine
+    container_name: hamada-influxdb
+    restart: always
+    environment:
+      - INFLUXDB_DB=influx
+      - INFLUXDB_ADMIN_USER=admin
+      - INFLUXDB_ADMIN_PASSWORD=${INFLUXDB_ADMIN_PASSWORD}
+    # ports:
+    #   - '8086:8086'
+    volumes:
+      - ./:/imports
+      - ./influxdb/influxdb_data:/var/lib/influxdb
+    networks:
+      - hamada-network
+    dns:
+      - 10.10.20.53  # Use Bind9 for DNS resolution
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.influx.loadbalancer.server.port=8086"
+      - "traefik.http.services.influx.loadbalancer.server.scheme=http"
+      - "traefik.http.routers.influx-http.entrypoints=web"
+      - "traefik.http.routers.influx-http.rule=Host(`influx.${DOMAIN_NAME}`) || HostRegexp(`{subhost:[a-z]+}.influx.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.influx-https.entrypoints=websecure"
+      - "traefik.http.routers.influx-https.rule=Host(`influx.${DOMAIN_NAME}`) || HostRegexp(`{subhost:[a-z]+}.influx.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.influx-https.tls=true"
+
+
+
+
+# grafana
+#==============================================================================================================================
+
+  grafana:
+    image: grafana/grafana-oss:11.0.1-ubuntu
+    container_name: hamada-grafana-server
+    restart: always
+    depends_on:
+      - influxdb
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=${GF_SECURITY_ADMIN_PASSWORD}
+      # - GF_INSTALL_PLUGINS=
+    links:
+      - influxdb
+    # ports:
+    #   - '3000:3000'
+    volumes:
+      - grafana_data:/var/lib/grafana
+    networks:
+      - hamada-network
+    dns:
+      - 10.10.20.53  # Use Bind9 for DNS resolution
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.grafana.loadbalancer.server.port=3000"
+      - "traefik.http.services.grafana.loadbalancer.server.scheme=http"
+      - "traefik.http.routers.grafana-http.entrypoints=web"
+      - "traefik.http.routers.grafana-http.rule=Host(`grafana.${DOMAIN_NAME}`) || HostRegexp(`{subhost:[a-z]+}.grafana.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.grafana-https.entrypoints=websecure"
+      - "traefik.http.routers.grafana-https.rule=Host(`grafana.${DOMAIN_NAME}`) || HostRegexp(`{subhost:[a-z]+}.grafana.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.grafana-https.tls=true"
+
+
+
+
+# Filebrowser
+#==============================================================================================================================
+  # Filebrowser service
+  filebrowser:
+    container_name: hamada-filebrowser
+    image: hurlenko/filebrowser
+    user: "${UID}:${GID}"
+    # ports:
+    #   - 447:8080
+    volumes:
+      - /home/hamada:/data
+      - /CONFIG_DIR:/config
+    environment:
+      - FB_BASEURL=/filebrowser
+    restart: always
+    # Traefik labels
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.filebrowser.loadbalancer.server.port=8080"
+      - "traefik.http.services.filebrowser.loadbalancer.server.scheme=http"
+      - "traefik.http.routers.filebrowser-http.entrypoints=web"
+      - "traefik.http.routers.filebrowser-http.rule=Host(`filebrowser.${DOMAIN_NAME}`) || HostRegexp(`{subhost:[a-z]+}.filebrowser.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.filebrowser-https.entrypoints=websecure"
+      - "traefik.http.routers.filebrowser-https.rule=Host(`filebrowser.${DOMAIN_NAME}`) || HostRegexp(`{subhost:[a-z]+}.filebrowser.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.filebrowser-https.tls=true"
+
+    networks:
+      - hamada-network
+
+    dns:
+      - 10.10.20.53  # Use Bind9 for DNS resolution
+
+
+# IT Tools
+#==============================================================================================================================
+  # IT Tools service
+  it-tools:
+    container_name: hamada-it-tools
+    image: ghcr.io/corentinth/it-tools:latest
+    restart: unless-stopped
+    # ports:
+    #   - "94:80"
+    # Traefik labels
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.it-tools.loadbalancer.server.port=80"
+      - "traefik.http.services.it-tools.loadbalancer.server.scheme=http"
+      - "traefik.http.routers.it-tools-http.entrypoints=web"
+      - "traefik.http.routers.it-tools-http.rule=Host(`it-tools.${DOMAIN_NAME}`) || HostRegexp(`{subhost:[a-z]+}.it-tools.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.it-tools-https.entrypoints=websecure"
+      - "traefik.http.routers.it-tools-https.rule=Host(`it-tools.${DOMAIN_NAME}`) || HostRegexp(`{subhost:[a-z]+}.it-tools.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.it-tools-https.tls=true"
+    networks:
+      - hamada-network
+
+    dns:
+      - 10.10.20.53  # Use Bind9 for DNS resolution
+
+
+
+# homarr
+#==============================================================================================================================
+
+  homarr:
+    container_name: hamada-homarr
+    image: ghcr.io/ajnart/homarr:${HOMARR_VERSION}
+    restart: unless-stopped
+    volumes:
+      - ./homarr/configs:/app/data/configs
+      - ./homarr/icons:/app/public/icons
+#      - /var/run/docker.sock:/var/run/docker.sock:ro
+    # ports:
+    #   - '7575:7575'
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.dashboard.loadbalancer.server.port=7575"
+      - "traefik.http.services.dashboard.loadbalancer.server.scheme=http"
+      - "traefik.http.routers.dashboard-http.entrypoints=web"
+      - "traefik.http.routers.dashboard-http.rule=Host(`dashboard.${DOMAIN_NAME}`) || HostRegexp(`{subhost:[a-z]+}.dashboard.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.dashboard-https.entrypoints=websecure"
+      - "traefik.http.routers.dashboard-https.rule=Host(`dashboard.${DOMAIN_NAME}`) || HostRegexp(`{subhost:[a-z]+}.dashboard.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.dashboard-https.tls=true"
+    networks:
+      - hamada-network
+    dns:
+      - 10.10.20.53  # Use Bind9 for DNS resolution
+
+
+# Portainer
+#==============================================================================================================================
+
+
+  portainer-ce:
+      image: 'portainer/portainer-ce:latest'
+      volumes:
+          - './portainer/portainer_data:/data'
+          - '/var/run/docker.sock:/var/run/docker.sock'
+      restart: always
+      container_name: hamada-portainer
+      # ports:
+      #     - '9443:9443'
+      #     - '8000:8000'
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.services.port.loadbalancer.server.port=9443"
+        - "traefik.http.services.port.loadbalancer.server.scheme=https"
+        - "traefik.http.routers.port-http.entrypoints=web"
+        - "traefik.http.routers.port-http.rule=Host(`port.${DOMAIN_NAME}`) || HostRegexp(`{subhost:[a-z]+}.port.${DOMAIN_NAME}`)"
+        - "traefik.http.routers.port-https.entrypoints=websecure"
+        - "traefik.http.routers.port-https.rule=Host(`port.${DOMAIN_NAME}`) || HostRegexp(`{subhost:[a-z]+}.port.${DOMAIN_NAME}`)"
+        - "traefik.http.routers.port-https.tls=true"
+      networks:
+        - hamada-network
+
+      dns:
+        - 10.10.20.53  # Use Bind9 for DNS resolution
+
+# volumes
+#==============================================================================================================================
+
+
+
+
+volumes:
+
+
+
+# grafana volumes
+#==============================================================================================================================
+
+  grafana_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./vol/grafana/grafana_data
+
+# Wazuh volumes
+#==============================================================================================================================
+  # Wazuh/config folder: Contains configurations and critical data
+  wazuh_api_configuration:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./vol/wazuh/config/api_configuration
+  wazuh_etc:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./vol/wazuh/config/etc
+  wazuh_queue:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./vol/wazuh/config/queue
+  wazuh_var_multigroups:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./vol/wazuh/config/var_multigroups
+  wazuh_integrations:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./vol/wazuh/config/integrations
+  wazuh_active_response:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./vol/wazuh/config/active_response
+  wazuh_agentless:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./vol/wazuh/config/agentless
+  wazuh_wodles:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./vol/wazuh/config/wodles
+  filebeat_etc:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./vol/wazuh/config/filebeat_etc
+  wazuh-indexer-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./vol/wazuh/config/indexer_data
+  wazuh-dashboard-config:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./vol/wazuh/config/dashboard_config
+  wazuh-dashboard-custom:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./vol/wazuh/config/dashboard_custom
+
+  # Wazuh/logs folder: Contains logs and data that can be lost or removed
+  wazuh_logs:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./vol/wazuh/logs/wazuh_logs
+  filebeat_var:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./vol/wazuh/logs/filebeat_var

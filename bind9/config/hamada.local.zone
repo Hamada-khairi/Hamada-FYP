@@ -1,0 +1,25 @@
+$TTL 2d
+$ORIGIN hamada.local.
+
+@           IN      SOA     ns1.hamada.local admin.hamada.local (
+                                20230218        ; serial number
+                                3600            ; refresh period
+                                600             ; retry period
+                                604800          ; expire time
+                                1800            ; negative TTL
+                                )
+@           IN      NS      ns1.hamada.local.
+
+ns1         IN      A       10.0.0.134
+
+; Main VLAN network services
+router      IN      A       10.0.0.1
+ap1         IN      A       10.0.0.2
+pc1         IN      A       10.0.0.101
+
+
+; Wildcard entry
+*           IN      A       10.0.0.134
+
+@           IN      A       10.0.0.134
+
