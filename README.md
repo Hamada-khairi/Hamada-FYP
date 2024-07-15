@@ -22,6 +22,8 @@ Before you begin, ensure you have the following installed on your system:
 - Docker Compose
 - Git (for cloning the repository)
 
+---
+
 ## Getting Started
 
 1. Clone the repository:
@@ -52,6 +54,9 @@ Before you begin, ensure you have the following installed on your system:
    ```
 
 6. Access the services through their respective URLs (as defined in your Traefik configuration).
+
+---
+
 
 ## Project Structure
 
@@ -93,6 +98,8 @@ Hamada-FYP-Simple/
 └── .env
 ```
 
+---
+
 ## Services
 
 This project includes the following services:
@@ -109,6 +116,8 @@ This project includes the following services:
 10. IT Tools: Collection of handy IT tools
 11. Homarr: Dashboard for your server
 12. Portainer CE: Container management platform
+
+---
 
 ## Configuration
 
@@ -142,6 +151,37 @@ If you encounter any issues:
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
+
+---
+
+## Security Features
+
+This project incorporates several security measures to protect your infrastructure and data:
+
+1. **Wazuh Security Information and Event Management (SIEM)**
+   - Wazuh provides comprehensive security monitoring and threat detection.
+   - It offers real-time analysis of security events across your infrastructure.
+   - Features include log analysis, file integrity monitoring, vulnerability detection, and compliance monitoring.
+
+2. **Traefik as a Reverse Proxy with SSL/TLS Encryption**
+   - Traefik acts as a secure gateway to your services, managing routing and load balancing.
+   - It automatically handles SSL/TLS certificate management for HTTPS connections.
+   - This ensures encrypted communication between clients and your services, protecting data in transit.
+
+3. **Network Segmentation with Docker Networks**
+   - The project uses a custom Docker network (`hamada-network`) to isolate containers.
+   - This network segmentation limits the attack surface and contains potential security breaches.
+   - It allows for fine-grained control over inter-container communication.
+
+### Additional Security Considerations
+
+- **Bind9 DNS Server**: Provides a local DNS resolution, reducing reliance on external DNS services and potential DNS-based attacks.
+- **Regular Updates**: Ensure all services are regularly updated to patch known vulnerabilities.
+- **Access Control**: Implement strong authentication and authorization mechanisms for all services, especially those exposed to the internet.
+
+
+
+
 
 ## License
 
