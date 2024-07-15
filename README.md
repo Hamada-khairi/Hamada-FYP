@@ -76,7 +76,16 @@ Before you begin, ensure you have the following installed on your system:
    docker-compose up -d
    ```
 
-8. Access the services through their respective URLs (as defined in your Traefik configuration).
+8. Configuring The Dns:
+   ```
+   nano bind9/config/hamada.local.zone
+   ```
+   add your Privet IP here
+
+![image](https://github.com/user-attachments/assets/ac1eccf3-bcff-4acf-91cf-ec525b5b5795)
+
+
+9. Access the services through their respective URLs (as defined in your Traefik configuration).
 
 ---
 
