@@ -173,14 +173,12 @@ This project incorporates several security measures to protect your infrastructu
    - This network segmentation limits the attack surface and contains potential security breaches.
    - It allows for fine-grained control over inter-container communication.
 
-### Additional Security Considerations
+### Additional Security 
 
 - **Bind9 DNS Server**: Provides a local DNS resolution, reducing reliance on external DNS services and potential DNS-based attacks.
-- **Regular Updates**: Ensure all services are regularly updated to patch known vulnerabilities.
-- **Access Control**: Implement strong authentication and authorization mechanisms for all services, especially those exposed to the internet.
 
 
-
+---
 
 
 ## License
