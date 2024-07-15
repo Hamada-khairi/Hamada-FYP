@@ -60,7 +60,7 @@ Before you begin, ensure you have the following installed on your system:
         -addext "subjectAltName=DNS:*.hamada.local,DNS:hamada.local" 
    ```
 
-5.1 Verifying the Certs
+5. Verifying the Certs
    ```
     openssl x509 -outform der -in ./traefik/config/certs/cert.pem -out ./traefik/config/certs/cert.der
    
