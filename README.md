@@ -50,8 +50,29 @@ Before you begin, ensure you have the following installed on your system:
    ```
    docker-compose -f generate-indexer-certs.yml run --rm generator
    ```
+   
+5. Generate wild card certificates for Traefik you can change the Domain
 
-5. Start the services:
+```
+ openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+     -keyout ./traefik/config/certs/cert-key.pem \
+     -out ./traefik/config/certs/cert.pem \
+     -subj "/CN=*.hamada.local" \
+     -addext "subjectAltName=DNS:*.hamada.local,DNS:hamada.local" 
+```
+
+Verifying the Certs
+```
+ openssl x509 -outform der -in ./traefik/config/certs/cert.pem -out ./traefik/config/certs/cert.der
+
+ openssl x509 -in ./traefik/config/certs/cert.pem -text -noout
+
+ openssl rsa -noout -modulus -in ./traefik/config/certs/cert-key.pem | openssl md5
+
+ openssl x509 -noout -modulus -in ./traefik/config/certs/cert.pem | openssl md5 
+```
+
+6. Start the services:
    ```
    docker-compose up -d
    ```
