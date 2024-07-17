@@ -72,16 +72,23 @@ Before you begin, ensure you have the following installed on your system:
     openssl x509 -noout -modulus -in ./traefik/config/certs/cert.pem | openssl md5 
    ```
 
-7. Start the services:
-   ```
-   docker-compose up -d
-   ```
-
-8. Configuring The Dns:
+7. Configuring The Dns:
    ```
    nano bind9/config/hamada.local.zone
    ```
    add your Privet IP here
+
+8. Configuring The telegraf:
+   ```
+   sudo chmod 666 /var/run/docker.sock
+   ```
+
+9. Start the services:
+   ```
+   docker-compose up -d
+   ```
+
+
 
 ![image](https://github.com/user-attachments/assets/ac1eccf3-bcff-4acf-91cf-ec525b5b5795)
 
