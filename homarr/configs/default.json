@@ -12,71 +12,6 @@
   ],
   "apps": [
     {
-      "id": "bd64a74a-de1c-49d8-8e37-68cee03577c0",
-      "name": "Grafana",
-      "url": "https://grafana.hamada.local",
-      "appearance": {
-        "iconUrl": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/svg/grafana.svg",
-        "appNameStatus": "normal",
-        "positionAppName": "column",
-        "lineClampAppName": 1,
-        "appNameFontSize": 16
-      },
-      "network": {
-        "enabledStatusChecker": true,
-        "statusCodes": [
-          "200",
-          "301",
-          "302",
-          "304",
-          "307",
-          "308"
-        ]
-      },
-      "behaviour": {
-        "isOpeningNewTab": true,
-        "externalUrl": "https://grafana.hamada.local/"
-      },
-      "area": {
-        "type": "wrapper",
-        "properties": {
-          "id": "default"
-        }
-      },
-      "shape": {
-        "lg": {
-          "location": {
-            "x": 1,
-            "y": 0
-          },
-          "size": {
-            "width": 1,
-            "height": 1
-          }
-        },
-        "md": {
-          "location": {
-            "x": 0,
-            "y": 0
-          },
-          "size": {
-            "width": 1,
-            "height": 1
-          }
-        }
-      },
-      "integration": {
-        "type": "pihole",
-        "properties": [
-          {
-            "field": "apiKey",
-            "type": "private",
-            "value": "998ed4d621742d0c2d85ed84173db569afa194d4597686cae947324aa58ab4bb"
-          }
-        ]
-      }
-    },
-    {
       "id": "d7298302-36dd-4a42-b64b-17ab93ad8c61",
       "name": "Traefik",
       "url": "https://traefik-dashboard.hamada.local",
@@ -122,6 +57,55 @@
         "md": {
           "location": {
             "x": 3,
+            "y": 0
+          },
+          "size": {
+            "width": 1,
+            "height": 1
+          }
+        }
+      },
+      "integration": {
+        "type": null,
+        "properties": []
+      }
+    },
+    {
+      "id": "21487e85-3d3d-47e5-849b-7a642c14e13e",
+      "name": "IT Tools",
+      "url": "https://it-tools.hamada.local",
+      "appearance": {
+        "iconUrl": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/svg/it-tools.svg",
+        "appNameStatus": "normal",
+        "positionAppName": "column",
+        "lineClampAppName": 1,
+        "appNameFontSize": 16
+      },
+      "network": {
+        "enabledStatusChecker": true,
+        "statusCodes": [
+          "200",
+          "301",
+          "302",
+          "304",
+          "307",
+          "308"
+        ]
+      },
+      "behaviour": {
+        "isOpeningNewTab": true,
+        "externalUrl": "https://it-tools.hamada.local/"
+      },
+      "area": {
+        "type": "wrapper",
+        "properties": {
+          "id": "default"
+        }
+      },
+      "shape": {
+        "lg": {
+          "location": {
+            "x": 2,
             "y": 0
           },
           "size": {
@@ -195,6 +179,55 @@
       }
     },
     {
+      "id": "3906ca9a-ae34-4a58-b3b5-d8ec315b0879",
+      "name": "Influx",
+      "url": "https://influx.hamada.local",
+      "appearance": {
+        "iconUrl": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/svg/influxdb.svg",
+        "appNameStatus": "normal",
+        "positionAppName": "column",
+        "lineClampAppName": 1,
+        "appNameFontSize": 16
+      },
+      "network": {
+        "enabledStatusChecker": true,
+        "statusCodes": [
+          "200",
+          "301",
+          "302",
+          "304",
+          "307",
+          "308"
+        ]
+      },
+      "behaviour": {
+        "isOpeningNewTab": true,
+        "externalUrl": "https://influx.hamada.local/"
+      },
+      "area": {
+        "type": "wrapper",
+        "properties": {
+          "id": "default"
+        }
+      },
+      "shape": {
+        "lg": {
+          "location": {
+            "x": 3,
+            "y": 1
+          },
+          "size": {
+            "width": 1,
+            "height": 1
+          }
+        }
+      },
+      "integration": {
+        "type": null,
+        "properties": []
+      }
+    },
+    {
       "id": "2dd6cdb0-3a73-42be-9110-a4d4a9b1322b",
       "name": "Portainer",
       "url": "https://port.hamada.local",
@@ -248,7 +281,7 @@
       "name": "file-browser",
       "url": "https://filebrowser.hamada.local/filebrowser",
       "appearance": {
-        "iconUrl": "https://file.thehomeland.club/filebrowser/static/img/logo.svg",
+        "iconUrl": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/svg/filebrowser.svg",
         "appNameStatus": "normal",
         "positionAppName": "column",
         "lineClampAppName": 1,
@@ -306,11 +339,11 @@
       "wrapperId": "default"
     },
     {
-      "id": "3906ca9a-ae34-4a58-b3b5-d8ec315b0879",
-      "name": "Influx",
-      "url": "https://influx.hamada.local",
+      "id": "bd64a74a-de1c-49d8-8e37-68cee03577c0",
+      "name": "Grafana",
+      "url": "https://grafana.hamada.local",
       "appearance": {
-        "iconUrl": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/svg/influxdb.svg",
+        "iconUrl": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/svg/grafana.svg",
         "appNameStatus": "normal",
         "positionAppName": "column",
         "lineClampAppName": 1,
@@ -329,7 +362,7 @@
       },
       "behaviour": {
         "isOpeningNewTab": true,
-        "externalUrl": "https://influx.hamada.local/"
+        "externalUrl": "https://grafana.hamada.local/"
       },
       "area": {
         "type": "wrapper",
@@ -340,8 +373,18 @@
       "shape": {
         "lg": {
           "location": {
-            "x": 2,
-            "y": 1
+            "x": 1,
+            "y": 0
+          },
+          "size": {
+            "width": 1,
+            "height": 1
+          }
+        },
+        "md": {
+          "location": {
+            "x": 0,
+            "y": 0
           },
           "size": {
             "width": 1,
@@ -350,8 +393,14 @@
         }
       },
       "integration": {
-        "type": null,
-        "properties": []
+        "type": "pihole",
+        "properties": [
+          {
+            "field": "apiKey",
+            "type": "private",
+            "value": "998ed4d621742d0c2d85ed84173db569afa194d4597686cae947324aa58ab4bb"
+          }
+        ]
       }
     }
   ],
