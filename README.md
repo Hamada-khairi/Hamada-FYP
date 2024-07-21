@@ -92,7 +92,7 @@ Before you begin, ensure you have the following installed on your system:
    ```
 
 
-   10. if you are on ubuntu do this:
+ 10. if you are on ubuntu do this:
       ```
       sudo nano /etc/systemd/resolved.conf
       ```
@@ -109,7 +109,7 @@ Before you begin, ensure you have the following installed on your system:
       ```
    
    
-   11. Access the services through their respective URLs (as defined in your Traefik configuration).
+ 11. Access the services through their respective URLs (as defined in your Traefik configuration).
 
 
 ---
