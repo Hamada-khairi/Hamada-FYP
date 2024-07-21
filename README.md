@@ -92,18 +92,18 @@ Before you begin, ensure you have the following installed on your system:
    ```
 
 
- 10. if in ubuntu do this 
-```
- sudo nano /etc/systemd/resolved.conf
-```
-```
-uncomment both DNSStubListener=no and put your privet ip here DNS=10.0.0.134 
-```
-```
-sudo systemctl restart systemd-resolved
-```
-
-
+10. if in ubuntu do this 
+   ```
+    sudo nano /etc/systemd/resolved.conf
+   ```
+   ```
+   uncomment both DNSStubListener=no and put your privet ip here DNS=10.0.0.134 
+   ```
+   ```
+   sudo systemctl restart systemd-resolved
+   ```
+   
+   
 11. Access the services through their respective URLs (as defined in your Traefik configuration).
 
 ---
