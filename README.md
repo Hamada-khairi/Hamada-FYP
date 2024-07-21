@@ -96,9 +96,14 @@ Before you begin, ensure you have the following installed on your system:
    ```
    sudo nano /etc/systemd/resolved.conf
    ```
+
    ```
    uncomment both DNSStubListener=no and put your privet ip here DNS=10.0.0.134 
    ```
+
+![image](https://github.com/user-attachments/assets/aee8869e-7798-4b5f-a793-5bf93207f02d)
+
+
    ```
    sudo systemctl restart systemd-resolved
    ```
