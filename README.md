@@ -103,10 +103,9 @@ Before you begin, ensure you have the following installed on your system:
    
    ![image](https://github.com/user-attachments/assets/aee8869e-7798-4b5f-a793-5bf93207f02d)
    
-   
-      ```
-      sudo systemctl restart systemd-resolved
-      ```
+   ```
+       sudo systemctl restart systemd-resolved
+   ```
    
    
  11. Access the services through their respective URLs (as defined in your Traefik configuration).
