@@ -113,6 +113,29 @@ Before you begin, ensure you have the following installed on your system:
 
 ---
 
+If you Dont want to use BIND9 DNS you can add these to your /etc/hosts
+
+   ```
+   nano /etc/hosts
+   ```
+
+And paste these 
+
+   ```
+   127.0.0.1 traefik-dashboard.hamada.local
+   127.0.0.1 wazuh-manager.hamada.local
+   127.0.0.1 wazuh-indexer.hamada.local
+   127.0.0.1 wazuh-dashboard.hamada.local
+   127.0.0.1 telegraf.hamada.local
+   127.0.0.1 influx.hamada.local
+   127.0.0.1 grafana.hamada.local
+   127.0.0.1 filebrowser.hamada.local
+   127.0.0.1 it-tools.hamada.local
+   127.0.0.1 dashboard.hamada.local
+   127.0.0.1 port.hamada.local
+   ```
+
+---
 
 ## Project Structure
 
