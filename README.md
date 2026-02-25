@@ -5,7 +5,8 @@
 
 ## Demo
 
-![video](https://youtu.be/qY1rvfwwA6g)
+[![Demo Video](https://img.youtube.com/vi/qY1rvfwwA6g/hqdefault.jpg)](https://youtu.be/qY1rvfwwA6g)
+
 
 This project is a comprehensive Docker-based setup for a variety of services including Wazuh (a security information and event management system), Traefik (a modern HTTP reverse proxy and load balancer), Grafana, InfluxDB, Telegraf, and more.
 
