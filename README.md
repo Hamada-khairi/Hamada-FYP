@@ -38,6 +38,11 @@ Before you begin, ensure you have the following installed on your system:
    cd Hamada-FYP
    ```
 
+   ```bash
+   curl -fsSL https://get.docker.com -o get-docker.sh
+   sh get-docker.sh
+   ```
+
 2. Set up the environment variables:
    ```
    cp .env.example .env
