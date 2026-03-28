@@ -95,21 +95,21 @@ Before you begin, ensure you have the following installed on your system:
 
    ```
    mkdir -p \
-  ./vol/wazuh/config/api_configuration \
-  ./vol/wazuh/config/etc \
-  ./vol/wazuh/config/queue \
-  ./vol/wazuh/config/var_multigroups \
-  ./vol/wazuh/config/integrations \
-  ./vol/wazuh/config/active_response \
-  ./vol/wazuh/config/agentless \
-  ./vol/wazuh/config/wodles \
-  ./vol/wazuh/config/filebeat_etc \
-  ./vol/wazuh/config/indexer_data \
-  ./vol/wazuh/config/dashboard_config \
-  ./vol/wazuh/config/dashboard_custom \
-  ./vol/wazuh/logs/wazuh_logs \
-  ./vol/wazuh/logs/filebeat_var \
-  ./vol/grafana/grafana_data
+     ./vol/wazuh/config/api_configuration \
+     ./vol/wazuh/config/etc \
+     ./vol/wazuh/config/queue \
+     ./vol/wazuh/config/var_multigroups \
+     ./vol/wazuh/config/integrations \
+     ./vol/wazuh/config/active_response \
+     ./vol/wazuh/config/agentless \
+     ./vol/wazuh/config/wodles \
+     ./vol/wazuh/config/filebeat_etc \
+     ./vol/wazuh/config/indexer_data \
+     ./vol/wazuh/config/dashboard_config \
+     ./vol/wazuh/config/dashboard_custom \
+     ./vol/wazuh/logs/wazuh_logs \
+     ./vol/wazuh/logs/filebeat_var \
+     ./vol/grafana/grafana_data
    ```
 
 9. Start the services:
